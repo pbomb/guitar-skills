@@ -38,21 +38,21 @@ export const STRING_OPEN_SEMITONES: Record<number, number> = {
 };
 
 export const INTERVAL_COLORS: Record<IntervalToken, string> = {
-  '1':   '#E74C3C',
-  'b2':  '#FF8C00',
-  '2':   '#F7DC6F',
-  'b3':  '#27AE60',
-  '3':   '#2ECC71',
-  '4':   '#1ABC9C',
-  'b5':  '#8E44AD',
-  '5':   '#3498DB',
-  'b6':  '#5DADE2',
-  '#5':  '#5DADE2',
-  '6':   '#85C1E9',
-  'bb7': '#A569BD',
-  'b7':  '#E67E22',
-  '7':   '#F0B27A',
-  '9':   '#F4D03F',
+  '1':   '#f7e721',  // semitone 0
+  'b2':  '#c6df31',  // semitone 1
+  '2':   '#6bbe52',  // semitone 2
+  'b3':  '#00ae84',  // semitone 3
+  '3':   '#00aece',  // semitone 4
+  '4':   '#0086ce',  // semitone 5
+  'b5':  '#4261ad',  // semitone 6
+  '5':   '#8c499c',  // semitone 7
+  'b6':  '#e7288c',  // semitone 8
+  '#5':  '#e7288c',  // semitone 8 (enharmonic with b6)
+  '6':   '#ef4142',  // semitone 9
+  'bb7': '#ef4142',  // semitone 9 (enharmonic with 6)
+  'b7':  '#f76929',  // semitone 10
+  '7':   '#ffae21',  // semitone 11
+  '9':   '#6bbe52',  // semitone 2 (same pitch class as 2)
 };
 
 export function getRootFret(root: RootNote, stringNum: number): number {
