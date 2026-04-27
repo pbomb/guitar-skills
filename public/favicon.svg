@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Headstock -->
+  <rect x="13" y="1" width="6" height="5" rx="1.5" fill="#c8a96e"/>
+  <circle cx="12.5" cy="3" r="1.2" fill="#1a1a2e"/>
+  <circle cx="19.5" cy="3" r="1.2" fill="#1a1a2e"/>
+
+  <!-- Nut -->
+  <rect x="12.5" y="5.5" width="7" height="1.2" rx="0.6" fill="#e8d5a3"/>
+
+  <!-- Neck -->
+  <rect x="14" y="6.5" width="4" height="10" rx="0.5" fill="#c8a96e"/>
+
+  <!-- Frets -->
+  <rect x="14" y="9"  width="4" height="0.5" rx="0.2" fill="#b8b8b8"/>
+  <rect x="14" y="11.5" width="4" height="0.5" rx="0.2" fill="#b8b8b8"/>
+  <rect x="14" y="14" width="4" height="0.5" rx="0.2" fill="#b8b8b8"/>
+
+  <!-- Guitar body (figure-8) -->
+  <!-- Upper bout -->
+  <ellipse cx="16" cy="19.5" rx="7" ry="5.5" fill="#c8602a"/>
+  <!-- Lower bout -->
+  <ellipse cx="16" cy="26"   rx="8.5" ry="6"   fill="#c8602a"/>
+
+  <!-- Body shading highlight -->
+  <ellipse cx="14" cy="19" rx="3" ry="2.5" fill="#d97840" opacity="0.5"/>
+  <ellipse cx="13.5" cy="26" rx="3.5" ry="3" fill="#d97840" opacity="0.4"/>
+
+  <!-- Waist -->
+  <rect x="9.5" y="22.5" width="13" height="3" fill="#c8602a"/>
+  <rect x="9.5" y="22.5" width="13" height="3" fill="#a04820" opacity="0.3"/>
+
+  <!-- Sound hole -->
+  <circle cx="16" cy="25.5" r="2.8" fill="#1a1a2e"/>
+  <circle cx="16" cy="25.5" r="2.4" fill="#0d1117"/>
+  <circle cx="16" cy="25.5" r="2"   fill="none" stroke="#c8a96e" stroke-width="0.4"/>
+
+  <!-- Strings -->
+  <line x1="14.5" y1="6.5" x2="13.5" y2="30" stroke="#d0d0d0" stroke-width="0.35" opacity="0.8"/>
+  <line x1="15.3" y1="6.5" x2="15"   y2="30" stroke="#d0d0d0" stroke-width="0.35" opacity="0.8"/>
+  <line x1="16"   y1="6.5" x2="16"   y2="30" stroke="#d0d0d0" stroke-width="0.35" opacity="0.8"/>
+  <line x1="16.7" y1="6.5" x2="17"   y2="30" stroke="#d0d0d0" stroke-width="0.35" opacity="0.8"/>
+  <line x1="17.5" y1="6.5" x2="18"   y2="30" stroke="#d0d0d0" stroke-width="0.35" opacity="0.8"/>
+  <line x1="18.2" y1="6.5" x2="19"   y2="30" stroke="#d0d0d0" stroke-width="0.35" opacity="0.8"/>
+
+  <!-- Bridge -->
+  <rect x="12.5" y="28.5" width="7" height="1.2" rx="0.5" fill="#8b4513"/>
+
+  <!-- Body outline -->
+  <ellipse cx="16" cy="19.5" rx="7"   ry="5.5" fill="none" stroke="#8b4513" stroke-width="0.5"/>
+  <ellipse cx="16" cy="26"   rx="8.5" ry="6"   fill="none" stroke="#8b4513" stroke-width="0.5"/>
+</svg>
