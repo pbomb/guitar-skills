@@ -5,6 +5,7 @@ import { generateChords } from './logic/chordGenerator';
 import ControlPanel from './components/ControlPanel/ControlPanel';
 import ChordCard from './components/ChordCard/ChordCard';
 import IntervalLegend from './components/IntervalLegend/IntervalLegend';
+import Metronome from './components/Metronome/Metronome';
 import './App.css';
 
 const STORAGE_KEY = 'guitarSkillsSettings';
@@ -96,6 +97,7 @@ export default function App() {
 
       <footer className="app__footer">
         <IntervalLegend chords={chords} />
+        <Metronome />
       </footer>
     </div>
   );

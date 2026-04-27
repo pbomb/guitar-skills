@@ -34,7 +34,14 @@ export function buildDiagram(
   const anchorString = CAGED_ANCHOR_STRING[cagedForm];
   const rootFret = getRootFret(root, anchorString);
 
-  const dots: FretDot[] = template.map(entry => {
+  // Compute raw frets; if any played string goes negative, shift every
+  // played string up by 12 so the whole shape moves to the next octave.
+  const rawFrets = template.map(entry =>
+    entry.interval === null ? null : rootFret + entry.fretOffset
+  );
+  const shift = rawFrets.some(f => f !== null && f < 0) ? 12 : 0;
+
+  const dots: FretDot[] = template.map((entry, i) => {
     if (entry.interval === null) {
       return {
         stringNum: entry.stringNum,
@@ -43,15 +50,9 @@ export function buildDiagram(
         muted: true,
       };
     }
-
-    let absoluteFret = rootFret + entry.fretOffset;
-
-    // Wrap around the neck: if fret goes negative, add 12
-    if (absoluteFret < 0) absoluteFret += 12;
-
     return {
       stringNum: entry.stringNum,
-      fret: absoluteFret,
+      fret: rawFrets[i]! + shift,
       interval: entry.interval,
       muted: false,
     };
