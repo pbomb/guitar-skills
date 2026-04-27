@@ -41,7 +41,7 @@ function dotCY(absoluteFret: number, windowMin: number): number {
 }
 
 function getTextColor(): string {
-  return '#ffffff';
+  return '#000000';
 }
 
 function detectBarre(dots: FretDot[], windowMin: number): { fret: number; strings: number[] } | null {
