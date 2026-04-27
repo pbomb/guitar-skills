@@ -1,0 +1,55 @@
+.chord-diagram {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.chord-diagram svg {
+  overflow: visible;
+}
+
+.nut-line {
+  stroke: var(--color-text);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.fret-line {
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+}
+
+.string-line {
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+}
+
+.mute-marker {
+  fill: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.open-marker {
+  fill: none;
+  stroke: var(--color-text);
+  stroke-width: 2;
+}
+
+.fret-label {
+  fill: var(--color-text-muted);
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+.barre-bar {
+  fill: var(--color-text-muted);
+  opacity: 0.35;
+}
+
+.dot-label {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
