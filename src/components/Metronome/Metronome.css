@@ -1,0 +1,133 @@
+.metronome {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metronome__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metronome__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.metronome__beat-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background 0.04s, box-shadow 0.04s;
+}
+
+.metronome__beat-dot--on {
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
+}
+
+.metronome__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metronome__bpm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metronome__nudge {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.metronome__nudge:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.metronome__bpm-display {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.metronome__bpm-input {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-align: right;
+  width: 4ch;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.metronome__bpm-input::-webkit-outer-spin-button,
+.metronome__bpm-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.metronome__bpm-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.metronome__slider {
+  width: 100%;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.metronome__toggle {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+
+.metronome__toggle--start {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.metronome__toggle--stop {
+  background: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.metronome__toggle:hover {
+  opacity: 0.85;
+}

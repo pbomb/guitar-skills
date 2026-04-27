@@ -34,9 +34,9 @@ function fretY(fretWithinWindow: number): number {
   return PAD_TOP + fretWithinWindow * FRET_SPACING;
 }
 
-// Dot center: between fret lines n-1 and n (1-indexed within window)
+// Dot center: sits in the slot between fret lines (row - 1) and row
 function dotCY(absoluteFret: number, windowMin: number): number {
-  const row = absoluteFret - windowMin + 1; // 1..5
+  const row = absoluteFret - windowMin; // 1 = first slot below nut
   return PAD_TOP + (row - 0.5) * FRET_SPACING;
 }
 
