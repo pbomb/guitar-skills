@@ -6,6 +6,11 @@ const MAX_BPM = 300;
 const SCHEDULE_AHEAD = 0.1;   // seconds to schedule ahead
 const SCHEDULER_INTERVAL = 25; // ms between scheduler calls
 
+interface MetronomeProps {
+  onBeat?: () => void;
+  onStop?: () => void;
+}
+
 function clampBpm(v: number) {
   return Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(v)));
 }
@@ -25,7 +30,7 @@ function scheduleClick(ctx: AudioContext, time: number) {
   osc.stop(time + 0.04);
 }
 
-export default function Metronome() {
+export default function Metronome(props: MetronomeProps) {
   const [bpm, setBpm] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
   const [beat, setBeat] = useState(false);
@@ -35,9 +40,12 @@ export default function Metronome() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bpmRef = useRef(bpm);
   const beatFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onBeatRef = useRef(props.onBeat);
+  const onStopRef = useRef(props.onStop);
 
-  // Keep bpmRef in sync so the scheduler always reads the latest value
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
+  useEffect(() => { onBeatRef.current = props.onBeat; }, [props.onBeat]);
+  useEffect(() => { onStopRef.current = props.onStop; }, [props.onStop]);
 
   const stopScheduler = useCallback(() => {
     if (timerRef.current !== null) clearTimeout(timerRef.current);
@@ -57,6 +65,7 @@ export default function Metronome() {
       const delay = Math.max(0, (beatTime - ctx.currentTime) * 1000);
       setTimeout(() => {
         setBeat(true);
+        onBeatRef.current?.();
         if (beatFlashRef.current) clearTimeout(beatFlashRef.current);
         beatFlashRef.current = setTimeout(() => setBeat(false), 80);
       }, delay);
@@ -83,6 +92,7 @@ export default function Metronome() {
     stopScheduler();
     setIsPlaying(false);
     setBeat(false);
+    onStopRef.current?.();
   }, [stopScheduler]);
 
   // Clean up on unmount

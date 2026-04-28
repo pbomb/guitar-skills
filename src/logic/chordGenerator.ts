@@ -8,6 +8,27 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+export function generateOneChord(
+  settings: AppSettings,
+  excludeKeys: Set<string>,
+): RenderedChord | null {
+  const enabledTypes = CHORD_TYPES.filter(ct => settings.enabledChordTypeIds.has(ct.id));
+  if (enabledTypes.length === 0) return null;
+  let attempts = 0;
+  while (attempts < 200) {
+    attempts++;
+    const root = pick(CHROMATIC_NOTES);
+    const chordType = pick(enabledTypes);
+    const key = `${root}-${chordType.id}`;
+    if (excludeKeys.has(key)) continue;
+    const cagedForm: CAGEDForm | null = settings.showCAGED ? pick(CAGED_FORMS) : null;
+    const formForDiagram: CAGEDForm = cagedForm ?? pick(CAGED_FORMS);
+    const { dots, minFret, maxFret, isOpen } = buildDiagram(root, chordType, formForDiagram);
+    return { root, chordType, cagedForm, dots, minFret, maxFret, isOpen };
+  }
+  return null;
+}
+
 export function generateChords(settings: AppSettings): RenderedChord[] {
   const enabledTypes = CHORD_TYPES.filter(ct => settings.enabledChordTypeIds.has(ct.id));
   if (enabledTypes.length === 0) return [];

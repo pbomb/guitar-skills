@@ -9,6 +9,13 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: border-color 0.1s, box-shadow 0.1s;
+}
+
+.chord-card--active {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow), 0 0 0 2px var(--color-accent),
+    0 0 20px color-mix(in srgb, var(--color-accent) 35%, transparent);
 }
 
 .chord-card__header {

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import type { AppSettings, RenderedChord } from './types';
+import { useEffect, useRef, useState } from 'react';
+import type { AppSettings } from './types';
 import { CHORD_TYPES } from './data/chordFormulas';
-import { generateChords } from './logic/chordGenerator';
+import { useChordCycler } from './hooks/useChordCycler';
 import ControlPanel from './components/ControlPanel/ControlPanel';
 import ChordCard from './components/ChordCard/ChordCard';
 import IntervalLegend from './components/IntervalLegend/IntervalLegend';
@@ -41,17 +41,32 @@ function saveSettings(s: AppSettings) {
 
 export default function App() {
   const [settings, setSettings] = useState<AppSettings>(loadSettings);
-  const [chords, setChords] = useState<RenderedChord[]>(() => generateChords(loadSettings()));
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
+
+  // Track ref for the sliding animation during cycling
+  const trackRef = useRef<HTMLDivElement | null>(null);
+
+  const { chords, incomingChord, cyclePhase, isPlaying, onBeat, onStop, onNewRound, commitCycle } =
+    useChordCycler(settings, () => setRevealed(new Set()));
 
   useEffect(() => {
     saveSettings(settings);
   }, [settings]);
 
-  function handleNewRound() {
-    setChords(generateChords(settings));
-    setRevealed(new Set());
-  }
+  // Trigger the CSS slide transition as soon as cycling phase begins
+  useEffect(() => {
+    if (cyclePhase !== 'cycling' || !trackRef.current) return;
+    const track = trackRef.current;
+    const firstCard = track.firstElementChild as HTMLElement | null;
+    if (!firstCard) return;
+    const cardWidth = firstCard.getBoundingClientRect().width;
+    const gap = 20;
+    // Use rAF to ensure the 3-card render has painted before we start the transition
+    const raf = requestAnimationFrame(() => {
+      track.style.transform = `translateX(-${cardWidth + gap}px)`;
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [cyclePhase]);
 
   function handleReveal(idx: number) {
     setRevealed(prev => new Set([...prev, idx]));
@@ -70,26 +85,63 @@ export default function App() {
         <span className="app__subtitle">CAGED System Trainer</span>
       </header>
 
-      <Metronome />
+      <Metronome onBeat={onBeat} onStop={onStop} />
 
       <ControlPanel
         settings={settings}
         onSettingsChange={setSettings}
-        onNewRound={handleNewRound}
+        onNewRound={onNewRound}
       />
 
-      <div className="chord-grid">
-        {chords.map((chord, i) => (
-          <ChordCard
-            key={`${chord.root}-${chord.chordType.id}-${i}`}
-            chord={chord}
-            isRevealed={revealed.has(i)}
-            onReveal={() => handleReveal(i)}
-          />
-        ))}
+      <div className={`chord-grid${cyclePhase === 'cycling' ? ' chord-grid--cycling' : ''}`}>
+        {cyclePhase === 'idle' ? (
+          chords.map((chord, i) => (
+            <ChordCard
+              key={`${chord.root}-${chord.chordType.id}-${i}`}
+              chord={chord}
+              isRevealed={revealed.has(i)}
+              onReveal={() => handleReveal(i)}
+              isActive={isPlaying && i === 0}
+            />
+          ))
+        ) : (
+          <div
+            className="chord-grid__track"
+            ref={trackRef}
+            onTransitionEnd={commitCycle}
+          >
+            {/* Exiting chord (slot 0) */}
+            <ChordCard
+              key="exit"
+              chord={chords[0]}
+              isRevealed={revealed.has(0)}
+              onReveal={() => {}}
+              animationClass="chord-card--exiting"
+            />
+            {/* Shifting chords (slot 1+) */}
+            {chords.slice(1).map((chord, i) => (
+              <ChordCard
+                key={`${chord.root}-${chord.chordType.id}`}
+                chord={chord}
+                isRevealed={revealed.has(i + 1)}
+                onReveal={() => {}}
+              />
+            ))}
+            {/* Entering chord */}
+            {incomingChord && (
+              <ChordCard
+                key="enter"
+                chord={incomingChord}
+                isRevealed={false}
+                onReveal={() => {}}
+                animationClass="chord-card--entering"
+              />
+            )}
+          </div>
+        )}
       </div>
 
-      {!allRevealed && chords.length > 0 && (
+      {!allRevealed && chords.length > 0 && cyclePhase === 'idle' && (
         <div className="app__reveal-all">
           <button className="btn--reveal-all" onClick={handleRevealAll}>
             Reveal All
