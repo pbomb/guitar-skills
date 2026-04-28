@@ -204,7 +204,7 @@ export const SHAPES: Record<string, ShapeMap> = {
       { stringNum: 5, fretOffset: -1, interval: null },
       { stringNum: 4, fretOffset: 0,  interval: '1'  },
       { stringNum: 3, fretOffset: 2,  interval: '5'  },
-      { stringNum: 2, fretOffset: 2,  interval: 'b7' },
+      { stringNum: 2, fretOffset: 1,  interval: 'b7' },
       { stringNum: 1, fretOffset: 1,  interval: 'b3' },
     ],
     C: [
@@ -212,7 +212,7 @@ export const SHAPES: Record<string, ShapeMap> = {
       { stringNum: 5, fretOffset: 0,  interval: '1'  },
       { stringNum: 4, fretOffset: -2, interval: 'b3' },
       { stringNum: 3, fretOffset: 0, interval: 'b7'  },
-      { stringNum: 2, fretOffset: -1, interval: '1' },
+      { stringNum: 2, fretOffset: -2, interval: '1' },
       { stringNum: 1, fretOffset: -1, interval: null },
     ],
     G: [
