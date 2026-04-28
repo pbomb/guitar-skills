@@ -1,3 +1,17 @@
+/**
+ * CAGED shape data — 15 chord types × 5 CAGED forms.
+ *
+ * Each ShapeEntry describes one string of a chord voicing:
+ *   stringNum   1=high E … 6=low E
+ *   fretOffset  absolute_fret − rootFret  (may be negative; diagramBuilder shifts +12 if so)
+ *   interval    null = muted string
+ *
+ * Anchor string = where the root note is fretted for each form:
+ *   E-form → str6,  A-form → str5,  D-form → str4,  C-form → str5,  G-form → str6
+ *
+ * To add a new chord type: add an entry to SHAPES with the same key as its
+ * ChordType.id in chordFormulas.ts and define all 5 CAGED forms.
+ */
 import type { CAGEDForm, ShapeEntry } from '../types';
 
 // Anchor string per CAGED form (where the root note lives)
@@ -5,8 +19,6 @@ export const CAGED_ANCHOR_STRING: Record<CAGEDForm, number> = {
   E: 6, A: 5, D: 4, C: 5, G: 6,
 };
 
-// fretOffset = absolute_fret - rootFret on anchor string
-// null interval = muted string
 type ShapeMap = Record<CAGEDForm, ShapeEntry[]>;
 
 export const SHAPES: Record<string, ShapeMap> = {

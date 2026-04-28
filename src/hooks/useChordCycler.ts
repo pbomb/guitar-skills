@@ -1,3 +1,24 @@
+/**
+ * useChordCycler — drives the metronome-synced chord carousel.
+ *
+ * Carousel layout (carouselChords[4]):
+ *   index 0  prev   dimmed — chord that was just retired
+ *   index 1  slot1  opaque — active practice chord (highlighted on odd measures)
+ *   index 2  slot2  opaque — active practice chord (highlighted on even measures)
+ *   index 3  next   dimmed — chord about to be introduced
+ *
+ * Timing model:
+ *   - 1 measure = 4 beats
+ *   - activeSlot toggles 1↔2 each measure
+ *   - After 8 measures (4 plays per slot), the carousel advances:
+ *       [prev, slot1, slot2, next] → [slot1, slot2, next, newChord]
+ *
+ * All beat/measure counters are refs (not state) to avoid re-renders on every
+ * beat. React state only changes at measure boundaries and cycle transitions.
+ *
+ * The CSS slide animation lives in App.tsx (useEffect on cyclePhase).
+ * commitCycle() is called by onTransitionEnd after the 380ms animation.
+ */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AppSettings, RenderedChord } from '../types';
 import { generateChords, generateOneChord } from '../logic/chordGenerator';
@@ -19,7 +40,7 @@ export interface ChordCyclerResult {
 }
 
 function makeCarousel(settings: AppSettings): RenderedChord[] {
-  // Always generate exactly 4 unique chords for the carousel
+  // Always generate exactly 4 unique chords for the carousel regardless of settings.numChords
   return generateChords({ ...settings, numChords: 4 });
 }
 
@@ -37,10 +58,11 @@ export function useChordCycler(
   const settingsRef = useRef(settings);
   const onCycleCommitRef = useRef(onCycleCommit);
 
-  // Beat/measure counters — all refs to avoid re-renders per beat
-  const beatInMeasureRef = useRef(0); // 0–3
-  const measureCountRef = useRef(0);  // 0–7; 8 measures = full cycle (4 plays per slot)
+  // Beat/measure counters — refs so the scheduler's stable onBeat closure never goes stale
+  const beatInMeasureRef = useRef(0); // 0–3; resets to 0 after the 4th beat
+  const measureCountRef = useRef(0);  // 0–7; resets to 0 after 8 measures → triggers advance
   const isPlayingRef = useRef(false);
+  // Guards against a second cycle firing during the 380ms CSS animation
   const isCyclingRef = useRef(false);
 
   useEffect(() => { carouselRef.current = carouselChords; }, [carouselChords]);
@@ -64,6 +86,7 @@ export function useChordCycler(
     const next = generateOneChord(settingsRef.current, excludeKeys);
     setIncomingChord(next);
     setCyclePhase('cycling');
+    // App.tsx useEffect watches cyclePhase and kicks off the CSS translateX animation
   }, []);
 
   const onBeat = useCallback(() => {
@@ -74,7 +97,7 @@ export function useChordCycler(
     }
 
     if (isCyclingRef.current) {
-      // Keep counting through the animation so beats stay in sync
+      // Keep counting beats through the animation so timing stays in sync
       beatInMeasureRef.current = (beatInMeasureRef.current + 1) % 4;
       return;
     }
@@ -82,30 +105,24 @@ export function useChordCycler(
     beatInMeasureRef.current++;
     if (beatInMeasureRef.current < 4) return;
 
-    // Measure complete
+    // Measure complete — advance counters
     beatInMeasureRef.current = 0;
     measureCountRef.current++;
 
     if (measureCountRef.current >= 8) {
-      // Full cycle: each slot played 4 times (measures 0,2,4,6 = slot1; 1,3,5,7 = slot2)
+      // Full cycle: slot1 played on measures 0,2,4,6 (×4) and slot2 on 1,3,5,7 (×4)
       measureCountRef.current = 0;
       isCyclingRef.current = true;
       triggerCycle();
     } else {
-      // Toggle active slot for next measure
       setActiveSlot(prev => (prev === 1 ? 2 : 1));
     }
   }, [triggerCycle]);
 
-  const onStop = useCallback(() => {
-    reset(false);
-  }, [reset]);
+  const onStop = useCallback(() => reset(false), [reset]);
+  const onNewRound = useCallback(() => reset(true), [reset]);
 
-  const onNewRound = useCallback(() => {
-    reset(true);
-  }, [reset]);
-
-  // Called by App when the CSS slide transition ends
+  // Called by App's onTransitionEnd after the 380ms CSS slide animation
   const commitCycle = useCallback(() => {
     setCarouselChords(prev => {
       const incoming = incomingChord;
@@ -115,9 +132,10 @@ export function useChordCycler(
     setIncomingChord(null);
     isCyclingRef.current = false;
     setCyclePhase('idle');
-    // After advance, slot1 is the old slot2 — start fresh at slot1
+    // After advance, the old slot2 is now slot1 — restart highlight from slot1
     setActiveSlot(isPlayingRef.current ? 1 : null);
     onCycleCommitRef.current();
+  // incomingChord captured at cycle-start; eslint rule doesn't apply here
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingChord]);
 
