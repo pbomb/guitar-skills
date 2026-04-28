@@ -7,13 +7,18 @@ interface ChordCardProps {
   isRevealed: boolean;
   onReveal: () => void;
   isActive?: boolean;
+  isDimmed?: boolean;
   animationClass?: string;
 }
 
-export default function ChordCard({ chord, isRevealed, onReveal, isActive, animationClass }: ChordCardProps) {
+export default function ChordCard({ chord, isRevealed, onReveal, isActive, isDimmed, animationClass }: ChordCardProps) {
   const chordName = `${chord.root} ${chord.chordType.label}`;
-  const classes = ['chord-card', isActive ? 'chord-card--active' : '', animationClass ?? '']
-    .filter(Boolean).join(' ');
+  const classes = [
+    'chord-card',
+    isActive ? 'chord-card--active' : '',
+    isDimmed ? 'chord-card--dimmed' : '',
+    animationClass ?? '',
+  ].filter(Boolean).join(' ');
 
   return (
     <div className={classes}>

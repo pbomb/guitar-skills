@@ -42,18 +42,23 @@ function saveSettings(s: AppSettings) {
 export default function App() {
   const [settings, setSettings] = useState<AppSettings>(loadSettings);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
-
-  // Track ref for the sliding animation during cycling
   const trackRef = useRef<HTMLDivElement | null>(null);
 
-  const { chords, incomingChord, cyclePhase, isPlaying, onBeat, onStop, onNewRound, commitCycle } =
-    useChordCycler(settings, () => setRevealed(new Set()));
+  const {
+    carouselChords,
+    incomingChord,
+    cyclePhase,
+    isPlaying,
+    activeSlot,
+    onBeat,
+    onStop,
+    onNewRound,
+    commitCycle,
+  } = useChordCycler(settings, () => setRevealed(new Set()));
 
-  useEffect(() => {
-    saveSettings(settings);
-  }, [settings]);
+  useEffect(() => { saveSettings(settings); }, [settings]);
 
-  // Trigger the CSS slide transition as soon as cycling phase begins
+  // Kick off the CSS slide transition as soon as cycling phase is entered
   useEffect(() => {
     if (cyclePhase !== 'cycling' || !trackRef.current) return;
     const track = trackRef.current;
@@ -61,7 +66,6 @@ export default function App() {
     if (!firstCard) return;
     const cardWidth = firstCard.getBoundingClientRect().width;
     const gap = 20;
-    // Use rAF to ensure the 3-card render has painted before we start the transition
     const raf = requestAnimationFrame(() => {
       track.style.transform = `translateX(-${cardWidth + gap}px)`;
     });
@@ -72,11 +76,9 @@ export default function App() {
     setRevealed(prev => new Set([...prev, idx]));
   }
 
-  function handleRevealAll() {
-    setRevealed(new Set(chords.map((_, i) => i)));
-  }
-
-  const allRevealed = chords.length > 0 && chords.every((_, i) => revealed.has(i));
+  // carouselChords = [prev(0), slot1(1), slot2(2), next(3)]
+  // Indices 1 and 2 are the 2 active practice chords; 0 and 3 are dimmed context chords.
+  const activeIndices = new Set([1, 2]);
 
   return (
     <div className="app">
@@ -93,64 +95,50 @@ export default function App() {
         onNewRound={onNewRound}
       />
 
-      <div className={`chord-grid${cyclePhase === 'cycling' ? ' chord-grid--cycling' : ''}`}>
+      {/* Carousel — always 4 cards; slides left when a chord is replaced */}
+      <div className={`carousel${cyclePhase === 'cycling' ? ' carousel--cycling' : ''}`}>
         {cyclePhase === 'idle' ? (
-          chords.map((chord, i) => (
+          carouselChords.map((chord, i) => (
             <ChordCard
               key={`${chord.root}-${chord.chordType.id}-${i}`}
               chord={chord}
               isRevealed={revealed.has(i)}
               onReveal={() => handleReveal(i)}
-              isActive={isPlaying && i === 0}
+              isActive={isPlaying && ((i === 1 && activeSlot === 1) || (i === 2 && activeSlot === 2))}
+              isDimmed={!activeIndices.has(i)}
             />
           ))
         ) : (
+          // During cycling: render 5 cards [prev, slot1, slot2, next, incoming] and slide left
           <div
-            className="chord-grid__track"
+            className="carousel__track"
             ref={trackRef}
             onTransitionEnd={commitCycle}
           >
-            {/* Exiting chord (slot 0) */}
-            <ChordCard
-              key="exit"
-              chord={chords[0]}
-              isRevealed={revealed.has(0)}
-              onReveal={() => {}}
-              animationClass="chord-card--exiting"
-            />
-            {/* Shifting chords (slot 1+) */}
-            {chords.slice(1).map((chord, i) => (
+            {carouselChords.map((chord, i) => (
               <ChordCard
-                key={`${chord.root}-${chord.chordType.id}`}
+                key={`${chord.root}-${chord.chordType.id}-${i}`}
                 chord={chord}
-                isRevealed={revealed.has(i + 1)}
+                isRevealed={revealed.has(i)}
                 onReveal={() => {}}
+                isDimmed={!activeIndices.has(i)}
               />
             ))}
-            {/* Entering chord */}
             {incomingChord && (
               <ChordCard
-                key="enter"
+                key="incoming"
                 chord={incomingChord}
                 isRevealed={false}
                 onReveal={() => {}}
-                animationClass="chord-card--entering"
+                isDimmed
               />
             )}
           </div>
         )}
       </div>
 
-      {!allRevealed && chords.length > 0 && cyclePhase === 'idle' && (
-        <div className="app__reveal-all">
-          <button className="btn--reveal-all" onClick={handleRevealAll}>
-            Reveal All
-          </button>
-        </div>
-      )}
-
       <footer className="app__footer">
-        <IntervalLegend chords={chords} />
+        <IntervalLegend chords={carouselChords.slice(1, 3)} />
       </footer>
     </div>
   );
