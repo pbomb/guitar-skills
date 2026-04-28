@@ -70,6 +70,8 @@ export default function App() {
         <span className="app__subtitle">CAGED System Trainer</span>
       </header>
 
+      <Metronome />
+
       <ControlPanel
         settings={settings}
         onSettingsChange={setSettings}
@@ -97,7 +99,6 @@ export default function App() {
 
       <footer className="app__footer">
         <IntervalLegend chords={chords} />
-        <Metronome />
       </footer>
     </div>
   );
