@@ -10,8 +10,9 @@
  * Timing model:
  *   - 1 measure = 4 beats
  *   - activeSlot toggles 1↔2 each measure
- *   - After 8 measures (4 plays per slot), the carousel advances:
- *       [prev, slot1, slot2, next] → [slot1, slot2, next, newChord]
+ *   - After slot1 completes 4 active plays (end of measure 6), first advance fires.
+ *   - One measure later, after slot2 completes 4 active plays, second advance fires.
+ *   - Each advance: [prev, slot1, slot2, next] → [slot1, slot2, next, newChord]
  *
  * All beat/measure counters are refs (not state) to avoid re-renders on every
  * beat. React state only changes at measure boundaries and cycle transitions.
@@ -60,7 +61,7 @@ export function useChordCycler(
 
   // Beat/measure counters — refs so the scheduler's stable onBeat closure never goes stale
   const beatInMeasureRef = useRef(0); // 0–3; resets to 0 after the 4th beat
-  const measureCountRef = useRef(0);  // 0–7; resets to 0 after 8 measures → triggers advance
+  const measureCountRef = useRef(0);  // increments each measure; triggers at 7 (first advance) and 8 (second advance)
   const isPlayingRef = useRef(false);
   // Guards against a second cycle firing during the 380ms CSS animation
   const isCyclingRef = useRef(false);
@@ -109,8 +110,13 @@ export function useChordCycler(
     beatInMeasureRef.current = 0;
     measureCountRef.current++;
 
-    if (measureCountRef.current >= 8) {
-      // Full cycle: slot1 played on measures 0,2,4,6 (×4) and slot2 on 1,3,5,7 (×4)
+    if (measureCountRef.current === 7) {
+      // slot1 has played 4 times (measures 0,2,4,6) — first advance.
+      // Leave measureCount at 7 so the next measure end brings it to 8 for the second advance.
+      isCyclingRef.current = true;
+      triggerCycle();
+    } else if (measureCountRef.current >= 8) {
+      // slot2 has played 4 times (measures 1,3,5,7) — second advance.
       measureCountRef.current = 0;
       isCyclingRef.current = true;
       triggerCycle();

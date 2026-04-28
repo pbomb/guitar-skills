@@ -65,7 +65,7 @@ export default function App() {
     const firstCard = track.firstElementChild as HTMLElement | null;
     if (!firstCard) return;
     const cardWidth = firstCard.getBoundingClientRect().width;
-    const gap = 20;
+    const gap = 16;
     const raf = requestAnimationFrame(() => {
       track.style.transform = `translateX(-${cardWidth + gap}px)`;
     });
