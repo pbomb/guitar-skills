@@ -30,13 +30,7 @@
 .carousel {
   display: flex;
   gap: 16px;
-  justify-content: center;
-  align-items: stretch;
-}
-
-.carousel--cycling {
   overflow: hidden;
-  justify-content: flex-start;
 }
 
 /* Sliding track rendered during the advance animation */
