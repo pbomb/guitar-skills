@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { AppSettings } from '../../types';
+import type { AppSettings, CAGEDForm } from '../../types';
 import { CHORD_TYPES } from '../../data/chordFormulas';
+import { CAGED_FORMS } from '../../data/cagedShapes';
 import './ControlPanel.css';
 
 interface ControlPanelProps {
@@ -19,20 +20,30 @@ export default function ControlPanel({ settings, onSettingsChange, onNewRound }:
     onSettingsChange({ ...settings, numChords: n });
   }
 
-  function toggleCAGED() {
-    onSettingsChange({ ...settings, showCAGED: !settings.showCAGED });
+  function toggleRevealDiagrams() {
+    onSettingsChange({ ...settings, revealDiagrams: !settings.revealDiagrams });
   }
 
   function toggleChordType(id: string) {
     const next = new Set(settings.enabledChordTypeIds);
     if (next.has(id)) {
-      // Don't allow deselecting the last type
       if (next.size <= 1) return;
       next.delete(id);
     } else {
       next.add(id);
     }
     onSettingsChange({ ...settings, enabledChordTypeIds: next });
+  }
+
+  function toggleCAGEDForm(form: CAGEDForm) {
+    const next = new Set(settings.enabledCAGEDForms);
+    if (next.has(form)) {
+      if (next.size <= 1) return;
+      next.delete(form);
+    } else {
+      next.add(form);
+    }
+    onSettingsChange({ ...settings, enabledCAGEDForms: next });
   }
 
   return (
@@ -55,15 +66,15 @@ export default function ControlPanel({ settings, onSettingsChange, onNewRound }:
           </div>
         </div>
 
-        {/* CAGED toggle */}
+        {/* Reveal Diagrams toggle */}
         <div className="control-panel__group">
-          <label className="control-panel__label" htmlFor="caged-toggle">Show CAGED Form</label>
-          <label className="toggle" aria-label="Show CAGED form">
+          <label className="control-panel__label" htmlFor="reveal-toggle">Reveal Diagrams</label>
+          <label className="toggle" aria-label="Reveal chord diagrams">
             <input
-              id="caged-toggle"
+              id="reveal-toggle"
               type="checkbox"
-              checked={settings.showCAGED}
-              onChange={toggleCAGED}
+              checked={settings.revealDiagrams}
+              onChange={toggleRevealDiagrams}
             />
             <span className="toggle__track" />
           </label>
@@ -111,6 +122,23 @@ export default function ControlPanel({ settings, onSettingsChange, onNewRound }:
             ))}
           </div>
         )}
+      </div>
+
+      {/* Chord forms */}
+      <div className="control-panel__chord-types">
+        <label className="control-panel__label">Chord Forms</label>
+        <div className="pill-group">
+          {CAGED_FORMS.map(form => (
+            <button
+              key={form}
+              className={`pill pill--form ${settings.enabledCAGEDForms.has(form) ? 'pill--active' : ''}`}
+              onClick={() => toggleCAGEDForm(form)}
+              aria-pressed={settings.enabledCAGEDForms.has(form)}
+            >
+              {form}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

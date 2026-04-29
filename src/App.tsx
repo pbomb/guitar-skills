@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AppSettings } from './types';
 import { CHORD_TYPES } from './data/chordFormulas';
+import { CAGED_FORMS } from './data/cagedShapes';
 import { useChordCycler } from './hooks/useChordCycler';
 import ControlPanel from './components/ControlPanel/ControlPanel';
 import ChordCard from './components/ChordCard/ChordCard';
@@ -15,10 +16,12 @@ function loadSettings(): AppSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      const storedForms = parsed.enabledCAGEDForms;
       return {
         numChords: parsed.numChords ?? 2,
         enabledChordTypeIds: new Set(parsed.enabledChordTypeIds ?? []),
-        showCAGED: parsed.showCAGED ?? false,
+        enabledCAGEDForms: new Set(Array.isArray(storedForms) && storedForms.length > 0 ? storedForms : CAGED_FORMS),
+        revealDiagrams: parsed.revealDiagrams ?? false,
       };
     }
   } catch {
@@ -27,7 +30,8 @@ function loadSettings(): AppSettings {
   return {
     numChords: 2,
     enabledChordTypeIds: new Set(CHORD_TYPES.filter(ct => ct.defaultEnabled).map(ct => ct.id)),
-    showCAGED: false,
+    enabledCAGEDForms: new Set(CAGED_FORMS),
+    revealDiagrams: false,
   };
 }
 
@@ -35,7 +39,8 @@ function saveSettings(s: AppSettings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     numChords: s.numChords,
     enabledChordTypeIds: [...s.enabledChordTypeIds],
-    showCAGED: s.showCAGED,
+    enabledCAGEDForms: [...s.enabledCAGEDForms],
+    revealDiagrams: s.revealDiagrams,
   }));
 }
 
@@ -102,7 +107,7 @@ export default function App() {
             <ChordCard
               key={`${chord.root}-${chord.chordType.id}-${i}`}
               chord={chord}
-              isRevealed={revealed.has(i)}
+              isRevealed={settings.revealDiagrams || revealed.has(i)}
               onReveal={() => handleReveal(i)}
               isActive={isPlaying && ((i === 1 && activeSlot === 1) || (i === 2 && activeSlot === 2))}
               isDimmed={!activeIndices.has(i)}
@@ -121,7 +126,7 @@ export default function App() {
               <ChordCard
                 key={`${chord.root}-${chord.chordType.id}-${i}`}
                 chord={chord}
-                isRevealed={revealed.has(i)}
+                isRevealed={settings.revealDiagrams || revealed.has(i)}
                 onReveal={() => {}}
                 isDimmed={!activeIndices.has(i)}
               />
@@ -130,7 +135,7 @@ export default function App() {
               <ChordCard
                 key="incoming"
                 chord={incomingChord}
-                isRevealed={false}
+                isRevealed={settings.revealDiagrams}
                 onReveal={() => {}}
                 isDimmed
               />

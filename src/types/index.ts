@@ -35,7 +35,8 @@ export interface RenderedChord {
 export interface AppSettings {
   numChords: 2 | 3 | 4;
   enabledChordTypeIds: Set<string>;
-  showCAGED: boolean;
+  enabledCAGEDForms: Set<CAGEDForm>;
+  revealDiagrams: boolean;
 }
 
 export interface ShapeEntry {

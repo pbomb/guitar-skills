@@ -8,6 +8,11 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function pickForm(settings: AppSettings): CAGEDForm {
+  const forms = CAGED_FORMS.filter(f => settings.enabledCAGEDForms.has(f));
+  return pick(forms.length > 0 ? forms : CAGED_FORMS);
+}
+
 export function generateOneChord(
   settings: AppSettings,
   excludeKeys: Set<string>,
@@ -21,9 +26,8 @@ export function generateOneChord(
     const chordType = pick(enabledTypes);
     const key = `${root}-${chordType.id}`;
     if (excludeKeys.has(key)) continue;
-    const cagedForm: CAGEDForm | null = settings.showCAGED ? pick(CAGED_FORMS) : null;
-    const formForDiagram: CAGEDForm = cagedForm ?? pick(CAGED_FORMS);
-    const { dots, minFret, maxFret, isOpen } = buildDiagram(root, chordType, formForDiagram);
+    const cagedForm: CAGEDForm = pickForm(settings);
+    const { dots, minFret, maxFret, isOpen } = buildDiagram(root, chordType, cagedForm);
     return { root, chordType, cagedForm, dots, minFret, maxFret, isOpen };
   }
   return null;
@@ -45,11 +49,8 @@ export function generateChords(settings: AppSettings): RenderedChord[] {
     if (usedKeys.has(key)) continue;
     usedKeys.add(key);
 
-    const cagedForm: CAGEDForm | null = settings.showCAGED ? pick(CAGED_FORMS) : null;
-    // Always build with a form (pick random when showCAGED is off so diagram still works)
-    const formForDiagram: CAGEDForm = cagedForm ?? pick(CAGED_FORMS);
-
-    const { dots, minFret, maxFret, isOpen } = buildDiagram(root, chordType, formForDiagram);
+    const cagedForm: CAGEDForm = pickForm(settings);
+    const { dots, minFret, maxFret, isOpen } = buildDiagram(root, chordType, cagedForm);
 
     results.push({ root, chordType, cagedForm, dots, minFret, maxFret, isOpen });
   }
