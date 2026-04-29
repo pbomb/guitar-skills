@@ -23,7 +23,7 @@ function scheduleClick(ctx: AudioContext, time: number) {
   gain.connect(ctx.destination);
 
   osc.frequency.value = 1000;
-  gain.gain.setValueAtTime(0.3, time);
+  gain.gain.setValueAtTime(0.4, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
 
   osc.start(time);
