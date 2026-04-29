@@ -40,6 +40,7 @@
   display: flex;
   gap: 16px;
   width: calc(125% + 4px);
+  flex-shrink: 0;
   transform: translateX(0);
   transition: transform 380ms ease-in-out;
 }
