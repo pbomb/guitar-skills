@@ -61,7 +61,7 @@ export function useChordCycler(
 
   // Beat/measure counters — refs so the scheduler's stable onBeat closure never goes stale
   const beatInMeasureRef = useRef(0); // 0–3; resets to 0 after the 4th beat
-  const measureCountRef = useRef(0);  // increments each measure; triggers at 7 (first advance) and 8 (second advance)
+  const measureCountRef = useRef(0);  // increments each measure
   const isPlayingRef = useRef(false);
   // Guards against a second cycle firing during the 380ms CSS animation
   const isCyclingRef = useRef(false);
@@ -104,21 +104,17 @@ export function useChordCycler(
     }
 
     beatInMeasureRef.current++;
-    if (beatInMeasureRef.current < 4) return;
-
+    if (beatInMeasureRef.current <= 4) return;
+    
     // Measure complete — advance counters
-    beatInMeasureRef.current = 0;
+    beatInMeasureRef.current = 1;
     measureCountRef.current++;
 
-    if (measureCountRef.current === 7) {
+    if (measureCountRef.current === 3) {
       // slot1 has played 4 times (measures 0,2,4,6) — first advance.
       // Leave measureCount at 7 so the next measure end brings it to 8 for the second advance.
       isCyclingRef.current = true;
-      triggerCycle();
-    } else if (measureCountRef.current >= 8) {
-      // slot2 has played 4 times (measures 1,3,5,7) — second advance.
       measureCountRef.current = 0;
-      isCyclingRef.current = true;
       triggerCycle();
     } else {
       setActiveSlot(prev => (prev === 1 ? 2 : 1));
