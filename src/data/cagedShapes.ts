@@ -283,12 +283,12 @@ export const SHAPES: Record<string, ShapeMap> = {
 
   sus2: {
     E: [
-      { stringNum: 6, fretOffset: 0,  interval: '1' },
-      { stringNum: 5, fretOffset: 2,  interval: '5' },
-      { stringNum: 4, fretOffset: 2,  interval: '1' },
-      { stringNum: 3, fretOffset: -1, interval: '2' },
-      { stringNum: 2, fretOffset: 0,  interval: '5' },
-      { stringNum: 1, fretOffset: 0,  interval: '1' },
+      { stringNum: 6, fretOffset: -1,  interval: null },
+      { stringNum: 5, fretOffset: 0,  interval: '1' },
+      { stringNum: 4, fretOffset: 2,  interval: '5' },
+      { stringNum: 3, fretOffset: 2, interval: '1' },
+      { stringNum: 2, fretOffset: 0,  interval: '2' },
+      { stringNum: 1, fretOffset: 0,  interval: '5' },
     ],
     A: [
       { stringNum: 6, fretOffset: -1, interval: null },
