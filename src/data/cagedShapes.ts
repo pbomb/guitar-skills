@@ -96,7 +96,7 @@ export const SHAPES: Record<string, ShapeMap> = {
       { stringNum: 4, fretOffset: -2, interval: 'b3' },
       { stringNum: 3, fretOffset: -3, interval: '5'  },
       { stringNum: 2, fretOffset: -2, interval: '1'  },
-      { stringNum: 1, fretOffset: -4, interval: 'b3' },
+      { stringNum: 1, fretOffset: -1, interval: null },
     ],
     G: [
       { stringNum: 6, fretOffset: 0,  interval: '1'  },
