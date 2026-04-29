@@ -96,7 +96,7 @@ export default function App() {
       />
 
       {/* Carousel — always 4 cards; slides left when a chord is replaced */}
-      <div className={`carousel${cyclePhase === 'cycling' ? ' carousel--cycling' : ''}`}>
+      <div className="carousel">
         {cyclePhase === 'idle' ? (
           carouselChords.map((chord, i) => (
             <ChordCard
@@ -113,7 +113,9 @@ export default function App() {
           <div
             className="carousel__track"
             ref={trackRef}
-            onTransitionEnd={commitCycle}
+            onTransitionEnd={(e) => {
+              if (e.currentTarget === e.target && e.propertyName === 'transform') commitCycle();
+            }}
           >
             {carouselChords.map((chord, i) => (
               <ChordCard
