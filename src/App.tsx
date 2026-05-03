@@ -81,9 +81,9 @@ export default function App() {
     setRevealed(prev => new Set([...prev, idx]));
   }
 
-  // carouselChords = [prev(0), slot1(1), slot2(2), next(3)]
-  // Indices 1 and 2 are the 2 active practice chords; 0 and 3 are dimmed context chords.
-  const activeIndices = new Set([1, 2]);
+  // carouselChords = [slot1(0), slot2(1), next1(2), next2(3)]
+  // Indices 0 and 1 are the 2 active practice chords; 2 and 3 are upcoming (dimmed).
+  const activeIndices = new Set([0, 1]);
 
   return (
     <div className="app">
@@ -100,7 +100,7 @@ export default function App() {
         onNewRound={onNewRound}
       />
 
-      {/* Carousel — always 4 cards; slides left when a chord is replaced */}
+      {/* Carousel — always 4 cards: [slot1, slot2, next1, next2]; slides left on advance */}
       <div className="carousel">
         {cyclePhase === 'idle' ? (
           carouselChords.map((chord, i) => (
@@ -109,12 +109,12 @@ export default function App() {
               chord={chord}
               isRevealed={settings.revealDiagrams || revealed.has(i)}
               onReveal={() => handleReveal(i)}
-              isActive={isPlaying && ((i === 1 && activeSlot === 1) || (i === 2 && activeSlot === 2))}
+              isActive={isPlaying && ((i === 0 && activeSlot === 1) || (i === 1 && activeSlot === 2))}
               isDimmed={!activeIndices.has(i)}
             />
           ))
         ) : (
-          // During cycling: render 5 cards [prev, slot1, slot2, next, incoming] and slide left
+          // During cycling: render 5 cards [slot1, slot2, next1, next2, incoming] and slide left
           <div
             className="carousel__track"
             ref={trackRef}
@@ -145,7 +145,7 @@ export default function App() {
       </div>
 
       <footer className="app__footer">
-        <IntervalLegend chords={carouselChords.slice(1, 3)} />
+        <IntervalLegend chords={carouselChords.slice(0, 2)} />
       </footer>
     </div>
   );
