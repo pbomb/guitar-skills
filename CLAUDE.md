@@ -14,7 +14,7 @@ Deployed to GitHub Pages at `/guitar-skills/` via `.github/workflows/deploy.yml`
 App.tsx
 ├── <Metronome onBeat onStop />       # Web Audio clock; fires onBeat callback each beat
 ├── <ControlPanel />                  # Chord-type toggles, CAGED toggle, New Round
-├── .carousel                         # 4 ChordCards: [prev, slot1, slot2, next]
+├── .carousel                         # 4 ChordCards: [slot1, slot2, next1, next2]
 │   └── <ChordCard isDimmed/isActive/animationClass />
 └── <IntervalLegend chords=[slot1,slot2] />
 
@@ -38,14 +38,14 @@ AppSettings (numChords, enabledChordTypeIds, showCAGED)
 generateChords({ ...settings, numChords: 4 })   ← always 4 for carousel
     │
     ▼
-carouselChords[4]   index: 0=prev(dimmed)  1=slot1  2=slot2  3=next(dimmed)
+carouselChords[4]   index: 0=slot1  1=slot2  2=next1(dimmed)  3=next2(dimmed)
     │
-    ├── isPlaying && activeSlot === 1  →  ChordCard[1] isActive
-    ├── isPlaying && activeSlot === 2  →  ChordCard[2] isActive
+    ├── isPlaying && activeSlot === 1  →  ChordCard[0] isActive
+    ├── isPlaying && activeSlot === 2  →  ChordCard[1] isActive
     │
     └── after 8 measures: advance carousel
             ├── slide animation (CSS translateX on 5-card track)
-            ├── commitCycle(): [slot1, slot2, next, newChord]
+            ├── commitCycle(): [slot2, next1, next2, newChord]
             └── activeSlot resets to 1
 ```
 
@@ -65,7 +65,7 @@ carouselChords[4]   index: 0=prev(dimmed)  1=slot1  2=slot2  3=next(dimmed)
 
 ## Carousel state invariants (`useChordCycler.ts`)
 
-- `carouselChords` always has exactly **4 elements**: `[prev, slot1, slot2, next]`
+- `carouselChords` always has exactly **4 elements**: `[slot1, slot2, next1, next2]`
 - `activeSlot` is `1` or `2` (which of the two practice chords is highlighted), or `null` when stopped
 - Active chord alternates every measure: slot1 → slot2 → slot1 → ... (measureCount % 2)
 - Advance triggers after **8 measures** (= 4 plays per slot in 2-slot alternation)
@@ -76,7 +76,7 @@ carouselChords[4]   index: 0=prev(dimmed)  1=slot1  2=slot2  3=next(dimmed)
 1. `setCyclePhase('cycling')` + `setIncomingChord(newChord)` → renders 5-card track
 2. `useEffect` in App reads card width via `getBoundingClientRect`, then sets `translateX(-(w+gap))` in a `requestAnimationFrame`
 3. CSS `transition: transform 380ms` runs
-4. `onTransitionEnd` fires `commitCycle()`: state becomes `[slot1, slot2, next, incoming]`, phase → `'idle'`
+4. `onTransitionEnd` fires `commitCycle()`: state becomes `[slot2, next1, next2, incoming]`, phase → `'idle'`
 
 ---
 

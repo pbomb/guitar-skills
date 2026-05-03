@@ -2,23 +2,23 @@
  * useChordCycler — drives the metronome-synced chord carousel.
  *
  * Carousel layout (carouselChords[4]):
- *   index 0  prev   dimmed — chord that was just retired
- *   index 1  slot1  opaque — active practice chord (highlighted on odd measures)
- *   index 2  slot2  opaque — active practice chord (highlighted on even measures)
- *   index 3  next   dimmed — chord about to be introduced
+ *   index 0  slot1  opaque — active practice chord (highlighted on odd measures)
+ *   index 1  slot2  opaque — active practice chord (highlighted on even measures)
+ *   index 2  next1  dimmed — first upcoming chord
+ *   index 3  next2  dimmed — second upcoming chord
  *
  * Timing model:
  *   - 1 measure = 4 beats
  *   - activeSlot toggles 1↔2 each measure
  *   - After slot1 completes 4 active plays (end of measure 6), first advance fires.
  *   - One measure later, after slot2 completes 4 active plays, second advance fires.
- *   - Each advance: [prev, slot1, slot2, next] → [slot1, slot2, next, newChord]
+ *   - Each advance: [slot1, slot2, next1, next2] → [slot2, next1, next2, newChord]
  *
  * All beat/measure counters are refs (not state) to avoid re-renders on every
  * beat. React state only changes at measure boundaries and cycle transitions.
  *
  * The CSS slide animation lives in App.tsx (useEffect on cyclePhase).
- * commitCycle() is called by onTransitionEnd after the 380ms animation.
+ * commitCycle() is called by onTransitionEnd after the animation completes.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AppSettings, RenderedChord } from '../types';
@@ -27,7 +27,7 @@ import { generateChords, generateOneChord } from '../logic/chordGenerator';
 export type CyclePhase = 'idle' | 'cycling';
 
 export interface ChordCyclerResult {
-  // Always 4 chords: [prev(dimmed), slot1(active), slot2(active), next(dimmed)]
+  // Always 4 chords: [slot1(active), slot2(active), next1(dimmed), next2(dimmed)]
   carouselChords: RenderedChord[];
   incomingChord: RenderedChord | null;
   cyclePhase: CyclePhase;
@@ -128,7 +128,7 @@ export function useChordCycler(
   const commitCycle = useCallback(() => {
     setCarouselChords(prev => {
       const incoming = incomingChord;
-      // [prev, slot1, slot2, next] → [slot1, slot2, next, incoming]
+      // [slot1, slot2, next1, next2] → [slot2, next1, next2, incoming]
       return incoming ? [...prev.slice(1), incoming] : prev;
     });
     setIncomingChord(null);
