@@ -38,6 +38,7 @@ export interface ChordCyclerResult {
   onStop: () => void;
   onNewRound: () => void;
   commitCycle: () => void;
+  advanceCycle: () => void;
 }
 
 function makeCarousel(settings: AppSettings): RenderedChord[] {
@@ -121,6 +122,14 @@ export function useChordCycler(
     }
   }, [triggerCycle]);
 
+  const advanceCycle = useCallback(() => {
+    if (isCyclingRef.current) return;
+    isCyclingRef.current = true;
+    measureCountRef.current = 0;
+    beatInMeasureRef.current = 0;
+    triggerCycle();
+  }, [triggerCycle]);
+
   const onStop = useCallback(() => reset(false), [reset]);
   const onNewRound = useCallback(() => reset(true), [reset]);
 
@@ -141,5 +150,5 @@ export function useChordCycler(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingChord]);
 
-  return { carouselChords, incomingChord, cyclePhase, isPlaying, activeSlot, onBeat, onStop, onNewRound, commitCycle };
+  return { carouselChords, incomingChord, cyclePhase, isPlaying, activeSlot, onBeat, onStop, onNewRound, commitCycle, advanceCycle };
 }

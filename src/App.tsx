@@ -59,6 +59,7 @@ export default function App() {
     onStop,
     onNewRound,
     commitCycle,
+    advanceCycle,
   } = useChordCycler(settings, () => setRevealed(new Set()));
 
   useEffect(() => { saveSettings(settings); }, [settings]);
@@ -142,6 +143,16 @@ export default function App() {
             )}
           </div>
         )}
+      </div>
+
+      <div className="app__advance">
+        <button
+          className="btn btn--advance"
+          onClick={advanceCycle}
+          disabled={cyclePhase === 'cycling'}
+        >
+          Advance →
+        </button>
       </div>
 
       <footer className="app__footer">
