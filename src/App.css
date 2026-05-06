@@ -45,6 +45,33 @@
   transition: transform 100ms ease-in-out;
 }
 
+.app__advance {
+  display: flex;
+  justify-content: center;
+}
+
+.btn--advance {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  padding: 6px 20px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn--advance:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.btn--advance:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .app__footer {
   margin-top: auto;
   padding-top: 8px;
