@@ -1,0 +1,27 @@
+.arpeggio-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 45px); /* subtract nav height */
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  gap: 24px;
+}
+
+.arpeggio-page__card-area {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Make the single card wider on the arpeggio page */
+.arpeggio-page__card-area .chord-card {
+  max-width: 340px;
+  width: 100%;
+}
+
+.arpeggio-page__empty {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
