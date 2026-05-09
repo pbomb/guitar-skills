@@ -1,9 +1,15 @@
-import { useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import type { CAGEDForm, RenderedChord } from '../types';
 import { CHORD_TYPES } from '../data/chordFormulas';
 import { CAGED_FORMS } from '../data/cagedShapes';
 import { CHROMATIC_NOTES } from '../data/notes';
 import { buildDiagram } from '../logic/diagramBuilder';
+import {
+  getSubShapeOptions,
+  buildFilteredChord,
+  INVERSION_LABELS,
+} from '../logic/arpeggioSubShapes';
+import type { ArpeggioNoteCount, InversionLabel, SubShapeVariant } from '../logic/arpeggioSubShapes';
 import ChordCard from '../components/ChordCard/ChordCard';
 import Metronome from '../components/Metronome/Metronome';
 import IntervalLegend from '../components/IntervalLegend/IntervalLegend';
@@ -15,18 +21,26 @@ interface ArpeggioSettings {
   enabledChordTypeIds: Set<string>;
   enabledCAGEDForms: Set<CAGEDForm>;
   revealDiagrams: boolean;
+  noteCount: ArpeggioNoteCount;
+  prefInversion: InversionLabel;
+  prefVariant: SubShapeVariant;
 }
 
 function loadSettings(): ArpeggioSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      const storedForms = parsed.enabledCAGEDForms;
+      const p = JSON.parse(raw);
+      const storedForms = p.enabledCAGEDForms;
       return {
-        enabledChordTypeIds: new Set(parsed.enabledChordTypeIds ?? []),
-        enabledCAGEDForms: new Set(Array.isArray(storedForms) && storedForms.length > 0 ? storedForms : CAGED_FORMS),
-        revealDiagrams: parsed.revealDiagrams ?? false,
+        enabledChordTypeIds: new Set(p.enabledChordTypeIds ?? []),
+        enabledCAGEDForms: new Set(
+          Array.isArray(storedForms) && storedForms.length > 0 ? storedForms : CAGED_FORMS,
+        ),
+        revealDiagrams: p.revealDiagrams ?? false,
+        noteCount: p.noteCount ?? 'full',
+        prefInversion: p.prefInversion ?? 'root',
+        prefVariant: p.prefVariant ?? 'low',
       };
     }
   } catch {
@@ -36,15 +50,24 @@ function loadSettings(): ArpeggioSettings {
     enabledChordTypeIds: new Set(CHORD_TYPES.filter(ct => ct.defaultEnabled).map(ct => ct.id)),
     enabledCAGEDForms: new Set(CAGED_FORMS),
     revealDiagrams: false,
+    noteCount: 'full',
+    prefInversion: 'root',
+    prefVariant: 'low',
   };
 }
 
 function saveSettings(s: ArpeggioSettings) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    enabledChordTypeIds: [...s.enabledChordTypeIds],
-    enabledCAGEDForms: [...s.enabledCAGEDForms],
-    revealDiagrams: s.revealDiagrams,
-  }));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      enabledChordTypeIds: [...s.enabledChordTypeIds],
+      enabledCAGEDForms: [...s.enabledCAGEDForms],
+      revealDiagrams: s.revealDiagrams,
+      noteCount: s.noteCount,
+      prefInversion: s.prefInversion,
+      prefVariant: s.prefVariant,
+    }),
+  );
 }
 
 function pick<T>(arr: T[]): T {
@@ -55,24 +78,21 @@ function generateChord(settings: ArpeggioSettings): RenderedChord | null {
   const enabledTypes = CHORD_TYPES.filter(ct => settings.enabledChordTypeIds.has(ct.id));
   if (enabledTypes.length === 0) return null;
   const forms = CAGED_FORMS.filter(f => settings.enabledCAGEDForms.has(f));
-  const availableForms = forms.length > 0 ? forms : CAGED_FORMS;
-
+  const cagedForm = pick(forms.length > 0 ? forms : CAGED_FORMS);
   const root = pick(CHROMATIC_NOTES);
   const chordType = pick(enabledTypes);
-  const cagedForm = pick(availableForms);
   const { dots, minFret, maxFret, isOpen } = buildDiagram(root, chordType, cagedForm);
   return { root, chordType, cagedForm, dots, minFret, maxFret, isOpen };
 }
 
-const DEFAULT_SETTINGS = loadSettings();
-const INITIAL_CHORD = generateChord(DEFAULT_SETTINGS);
+const INITIAL_SETTINGS = loadSettings();
 
 const DEFAULT_TYPES = CHORD_TYPES.filter(ct => ct.defaultEnabled);
 const OPTIONAL_TYPES = CHORD_TYPES.filter(ct => !ct.defaultEnabled);
 
 export default function ArpeggioPracticePage() {
-  const [settings, setSettings] = useState<ArpeggioSettings>(DEFAULT_SETTINGS);
-  const [chord, setChord] = useState<RenderedChord | null>(INITIAL_CHORD);
+  const [settings, setSettings] = useState<ArpeggioSettings>(INITIAL_SETTINGS);
+  const [chord, setChord] = useState<RenderedChord | null>(() => generateChord(INITIAL_SETTINGS));
   const [revealed, setRevealed] = useState(false);
   const [optionalExpanded, setOptionalExpanded] = useState(false);
 
@@ -103,14 +123,44 @@ export default function ArpeggioPracticePage() {
     updateSettings({ ...settings, enabledCAGEDForms: next });
   }
 
-  function toggleRevealDiagrams() {
-    updateSettings({ ...settings, revealDiagrams: !settings.revealDiagrams });
-  }
-
-  const advance = useCallback(() => {
+  function advance() {
     setChord(generateChord(settings));
     setRevealed(false);
-  }, [settings]);
+  }
+
+  // Compute available sub-shape options for the current chord + noteCount
+  const subShapeOptions = useMemo(() => {
+    if (!chord || settings.noteCount === 'full') return [];
+    return getSubShapeOptions(chord, settings.noteCount === '3-note' ? 3 : 4);
+  }, [chord, settings.noteCount]);
+
+  // Resolve the active sub-shape (use preferred inversion/variant, falling back to first available)
+  const activeSubShape = useMemo(() => {
+    if (settings.noteCount === 'full' || subShapeOptions.length === 0) return null;
+    const preferred = subShapeOptions.find(
+      o =>
+        o.inversion === settings.prefInversion &&
+        (o.variant === null || o.variant === settings.prefVariant),
+    );
+    return preferred ?? subShapeOptions[0];
+  }, [subShapeOptions, settings.noteCount, settings.prefInversion, settings.prefVariant]);
+
+  // Build the chord to display (filtered to sub-shape strings, or full)
+  const displayChord = useMemo(() => {
+    if (!chord || !activeSubShape) return chord;
+    return buildFilteredChord(chord, activeSubShape.stringNums);
+  }, [chord, activeSubShape]);
+
+  // Unique inversions available (for rendering the inversion selector)
+  const availableInversions = useMemo(
+    () => [...new Set(subShapeOptions.map(o => o.inversion))],
+    [subShapeOptions],
+  );
+
+  // Does the active inversion have Low / High variants?
+  const hasVariants =
+    activeSubShape !== null &&
+    subShapeOptions.filter(o => o.inversion === activeSubShape.inversion).length > 1;
 
   const isRevealed = settings.revealDiagrams || revealed;
 
@@ -123,18 +173,22 @@ export default function ArpeggioPracticePage() {
 
       <Metronome />
 
-      {/* Settings panel */}
+      {/* ── Settings panel ── */}
       <div className="control-panel">
+        {/* Row 1: Reveal toggle */}
         <div className="control-panel__row">
-          {/* Reveal Diagrams toggle */}
           <div className="control-panel__group">
-            <label className="control-panel__label" htmlFor="arp-reveal-toggle">Reveal Diagrams</label>
+            <label className="control-panel__label" htmlFor="arp-reveal-toggle">
+              Reveal Diagrams
+            </label>
             <label className="toggle" aria-label="Reveal chord diagrams">
               <input
                 id="arp-reveal-toggle"
                 type="checkbox"
                 checked={settings.revealDiagrams}
-                onChange={toggleRevealDiagrams}
+                onChange={() =>
+                  updateSettings({ ...settings, revealDiagrams: !settings.revealDiagrams })
+                }
               />
               <span className="toggle__track" />
             </label>
@@ -195,17 +249,75 @@ export default function ArpeggioPracticePage() {
             ))}
           </div>
         </div>
+
+        {/* ── Arpeggio form selector ── */}
+        <div className="control-panel__chord-types">
+          <label className="control-panel__label">Arpeggio Form</label>
+          <div className="btn-group">
+            {(['full', '4-note', '3-note'] as ArpeggioNoteCount[]).map(nc => (
+              <button
+                key={nc}
+                className={`btn btn--count ${settings.noteCount === nc ? 'btn--active' : ''}`}
+                onClick={() => updateSettings({ ...settings, noteCount: nc })}
+                aria-pressed={settings.noteCount === nc}
+              >
+                {nc === 'full' ? 'Full' : nc}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Inversion selector (shown only when not Full) ── */}
+        {settings.noteCount !== 'full' && (
+          <div className="control-panel__chord-types arpeggio-page__inversion-row">
+            <label className="control-panel__label">Inversion</label>
+            {subShapeOptions.length === 0 ? (
+              <span className="arpeggio-page__no-shapes">
+                No sub-shapes available for this chord
+              </span>
+            ) : (
+              <div className="pill-group">
+                {availableInversions.map(inv => (
+                  <button
+                    key={inv}
+                    className={`pill ${activeSubShape?.inversion === inv ? 'pill--active' : ''}`}
+                    onClick={() => updateSettings({ ...settings, prefInversion: inv })}
+                    aria-pressed={activeSubShape?.inversion === inv}
+                  >
+                    {INVERSION_LABELS[inv]}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Low / High variant selector */}
+            {hasVariants && activeSubShape && (
+              <div className="btn-group arpeggio-page__variant-group">
+                {(['low', 'high'] as SubShapeVariant[]).map(v => (
+                  <button
+                    key={v}
+                    className={`btn btn--count ${
+                      activeSubShape.variant === v ? 'btn--active' : ''
+                    }`}
+                    onClick={() => updateSettings({ ...settings, prefVariant: v })}
+                    aria-pressed={activeSubShape.variant === v}
+                  >
+                    {v === 'low' ? 'Low' : 'High'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Single chord card */}
+      {/* ── Single chord card ── */}
       <div className="arpeggio-page__card-area">
-        {chord ? (
+        {displayChord ? (
           <ChordCard
-            chord={chord}
+            chord={displayChord}
             isRevealed={isRevealed}
             onReveal={() => setRevealed(true)}
-            isActive={false}
-            isDimmed={false}
           />
         ) : (
           <p className="arpeggio-page__empty">No chord types selected.</p>
@@ -219,7 +331,7 @@ export default function ArpeggioPracticePage() {
       </div>
 
       <footer className="app__footer">
-        {chord && <IntervalLegend chords={[chord]} />}
+        {displayChord && <IntervalLegend chords={[displayChord]} />}
       </footer>
     </div>
   );
