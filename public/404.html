@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Guitar Skills</title>
+    <script>
+      // Store the full URL in sessionStorage so the SPA can restore it after redirect.
+      // This handles GitHub Pages returning 404 for deep links like /guitar-skills/arpeggios.
+      sessionStorage.setItem('ghpages_redirect', location.href);
+      location.replace('/guitar-skills/');
+    </script>
+  </head>
+  <body></body>
+</html>
